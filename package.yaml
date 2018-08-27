@@ -48,7 +48,7 @@ library:
   source-dirs: src
 
 executables:
-  stackpak-exe:
+  stackpak:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
