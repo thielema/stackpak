@@ -1,6 +1,6 @@
 # stackpak
 
-Generate a <a href="https://flatpak.org/">Flatpak</a> manifest from a stack project given a base flatpak manifest file.
+Generate a <a href="https://flatpak.org/">Flatpak</a> manifest from a Haskell stack project given a base flatpak manifest file.
 
 It is intended to be used by open source projects which can then be released on <a href="https://flathub.org/home">Flathub</a>.
 There is however, nothing stopping you from using stackpak with your own closed source Haskell projects.
