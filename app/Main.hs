@@ -37,7 +37,7 @@ name :: Text
 name = "stackpak"
 
 version :: Text
-version = "1.0.1"
+version = "1.0.2"
 
 copyright :: Text
 copyright = "(C) Richard Szibele"

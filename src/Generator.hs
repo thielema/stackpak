@@ -28,7 +28,7 @@ ghcHash ghc = (hash :: GhcData -> Text) ghc
 -- |Generate the module to download, compile and install GHC.
 generateGhcModule :: GhcData -> FlatpakModule
 generateGhcModule ghc = FlatpakModule
-    { _name = T.concat ["ghc-",  ghcVersion ghc]
+    { _name = T.concat ["ghc-",  ghcVersion ghc, "-", ghcArch ghc]
     , _onlyArches = [ghcArchitectureTranslated (ghcArch ghc)]
     , _buildsystem = "simple"
     , _builddir = False
