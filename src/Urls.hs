@@ -4,6 +4,8 @@ module Urls where
 import Data.Text (Text)
 import qualified Data.Text as T
 
+import GhcData
+
 -- |Generate a URL for the cabal metadata.
 urlCabalMetadata :: Text -> Text -> Text -> Text
 urlCabalMetadata commit pkgName pkgVersion = T.concat
@@ -41,7 +43,7 @@ urlMkGhcArchive os arch version = T.concat
 -- |Generate a URL to a GHC source archive.
 urlGhcArchive :: Text -> Text -> Either Text Text
 urlGhcArchive arch vers = do
-    continue <- if arch `elem` ["i386", "x86_64", "aarch64"]
+    continue <- if arch `elem` ghcArchitectures
         then Right ()
         else Left $ T.concat ["Unsupported architecture: \"", arch, "\""] 
     case vers of

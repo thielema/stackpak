@@ -21,6 +21,7 @@ import System.Directory
 import DependencyResolver (resolve)
 import Generator (generate)
 import GeneratorInput
+import GhcData
 import ProjectInformation
 import Stack.Stack (stackBuild, stackLsDependencies)
 import Stack.StackYaml (resolver)
@@ -36,16 +37,13 @@ name :: Text
 name = "stackpak"
 
 version :: Text
-version = "0.0.1"
+version = "1.0.1"
 
 copyright :: Text
 copyright = "(C) Richard Szibele"
 
 defaultInput :: FilePath
 defaultInput = "stackpak.json"
-
-defaultArchitecture :: String
-defaultArchitecture = "x86_64"
 
 defaultOutput :: FilePath
 defaultOutput = "stackpak.json"
@@ -58,13 +56,10 @@ data Arguments = Arguments
     -- ^ Directory of the stack project to generate the manifest for.
     , output :: FilePath
     -- ^ The output file.
-    , architecture :: String
-    -- ^ The architecture to generate for {i386, x86_64}.
     } deriving (Data, Typeable, Show, Eq)
 defaultArguments = Arguments
     { input = defaultInput &= typ "BASE_FLATPAK_FILE" &= argPos 0
     , directory = def &= typ "PROJECT_DIRECTORY" &= argPos 1
-    , architecture = defaultArchitecture &= opt defaultArchitecture &= typ defaultArchitecture &= help "Architecture to generate for {i386, x86_64}"
     , output = defaultOutput &= opt defaultOutput &= typ defaultOutput &= help "File to output to."
     } &= 
     program (T.unpack Main.name) &=
@@ -190,7 +185,6 @@ saveManifest filePath manifest = do
 execute :: Arguments -> ExceptT Text IO ()
 execute arguments = do
     -- get some args.
-    let arch = T.pack $ Main.architecture arguments
     let outputFile = T.pack $ Main.output arguments
 
     -- get necessary project information.
@@ -203,10 +197,27 @@ execute arguments = do
     -- get latest commit from the https://github.com/commercialhaskell/all-cabal-files repository.
     commit <- resolveCabalFilesGitCommit
 
-    -- resolve the GHC version and get its hash.
+    -- resolve the available GHCs.
     ghcVersion <- liftExceptT $ resolveGhcVersion $ ltsYaml projInfo
-    ghcUrl <- liftExceptT $ urlGhcArchive arch ghcVersion
-    ghcHash <- resolveGhcHash arch ghcVersion ghcUrl
+    allTryGhcs <- liftIO $ mapM (\arch -> do
+            let badResult = do
+                    T.putStrLn $ T.concat ["Warning: ignoring architecture \"", arch, "\""]
+                    pure []
+            ghcUrl <- runExceptT $ liftExceptT $ urlGhcArchive arch ghcVersion
+            case ghcUrl of
+                Left _    -> badResult
+                Right url -> do
+                    ghcHash <- runExceptT $ resolveGhcHash arch ghcVersion url
+                    case ghcHash of
+                        Left _     -> badResult
+                        Right hash -> pure $ [GhcData
+                            { architecture = arch
+                            , version = ghcVersion
+                            , url = url
+                            , hash = hash
+                            }]
+        ) ghcArchitectures
+    let allGhcs = concat allTryGhcs
 
     -- resolve the build order.
     pkgs <- resolveBuildOrder projInfo
@@ -224,10 +235,7 @@ execute arguments = do
         , revisionHashes = revisionHashes
         , revisionCommit = commit
         , packages = pkgs
-        , architecture = arch
-        , ghcVersion = ghcVersion
-        , ghcHash = ghcHash
-        , ghcUrl = ghcUrl
+        , ghcs = allGhcs
         }
 
     -- save generated manifest to a file.

@@ -3,6 +3,7 @@ module GeneratorInput where
 import qualified Data.HashMap.Strict as HMS
 import Data.Text (Text)
 
+import GhcData
 import ProjectInformation
 import Stack.LtsYaml
 
@@ -13,8 +14,5 @@ data GeneratorInput = GeneratorInput
     , revisionHashes :: HMS.HashMap Text Text
     , revisionCommit :: Text
     , packages :: [Package]
-    , architecture :: Text
-    , ghcVersion :: Text
-    , ghcHash :: Text
-    , ghcUrl :: Text
+    , ghcs :: [GhcData]
     }

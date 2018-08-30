@@ -6,23 +6,30 @@ module Generator where
 import Data.Aeson
 import Data.Aeson.Encode.Pretty
 import qualified Data.HashMap.Strict as HMS
+import Data.List
 import Data.String.Conversions
 import Data.Text (Text)
 import qualified Data.Text as T
 
 import Flatpak.Flatpak
 import GeneratorInput
+import GhcData
 import ProjectInformation
 import Stack.LtsYaml
 import Urls ( urlCabalMetadata
             , urlCabalPackage
             )
 
+ghcVersion ghc = (version :: GhcData -> Text) ghc
+ghcArch ghc = (architecture :: GhcData -> Text) ghc
+ghcUrl ghc = (url :: GhcData -> Text) ghc
+ghcHash ghc = (hash :: GhcData -> Text) ghc
+
 -- |Generate the module to download, compile and install GHC.
-generateGhcModule :: Text -> Text -> Text -> Text -> FlatpakModule
-generateGhcModule ghcUrl ghcArchitecture ghcVersion ghcHash = FlatpakModule
-    { _name = "ghc-" <> ghcVersion
-    , _onlyArches = []
+generateGhcModule :: GhcData -> FlatpakModule
+generateGhcModule ghc = FlatpakModule
+    { _name = T.concat ["ghc-",  ghcVersion ghc]
+    , _onlyArches = [ghcArchitectureTranslated (ghcArch ghc)]
     , _buildsystem = "simple"
     , _builddir = False
     , _buildCommands = 
@@ -33,8 +40,8 @@ generateGhcModule ghcUrl ghcArchitecture ghcVersion ghcHash = FlatpakModule
     --, _cleanupCommands = []
     , _sources = [FlatpakSource
         { _type = "archive"
-        , _url = ghcUrl
-        , _sha256 = ghcHash
+        , _url = ghcUrl ghc
+        , _sha256 = ghcHash ghc
         }]
     }
 
@@ -82,33 +89,34 @@ generateModule pkgHashes revisionHashes commit pkg = FlatpakModule
 generate :: GeneratorInput -> Either Text Text
 generate generatorInput = Right $ cs $ encodePretty' (defConfig { confCompare = compare }) (flatpak :: Flatpak) -- TODO: FIXME
     where
-        ghcCleanupCommands = map ("rm -rf " <>) $ concat 
+        ghcCleanupCommands :: GhcData -> [Text]
+        ghcCleanupCommands ghc = map ("rm -rf " <>) $ concat 
             [ map ("/app/bin/" <>) -- bin
                 [ "ghc"
-                , T.concat ["ghc-", ghcVersion generatorInput] 
+                , T.concat ["ghc-", ghcVersion ghc] 
                 , "ghc-pkg"
-                , T.concat ["ghc-pkg-", ghcVersion generatorInput]
+                , T.concat ["ghc-pkg-", ghcVersion ghc]
                 , "ghci"
-                , T.concat ["ghci-", ghcVersion generatorInput]
+                , T.concat ["ghci-", ghcVersion ghc]
                 , "haddock"
-                , T.concat ["haddock-ghc-", ghcVersion generatorInput]
+                , T.concat ["haddock-ghc-", ghcVersion ghc]
                 , "hp2ps"
                 , "hpc"
                 , "hsc2hs"
                 , "runghc"
-                , T.concat ["runghc-", ghcVersion generatorInput]
+                , T.concat ["runghc-", ghcVersion ghc]
                 , "runhaskell"
                 ]
             , map ("/app/lib/" <>) -- lib
                 [ "debug"
-                , T.concat ["ghc-", ghcVersion generatorInput]
-                , T.concat [architecture generatorInput, "-linux-ghc-", ghcVersion generatorInput]
+                , T.concat ["ghc-", ghcVersion ghc]
+                , T.concat [ghcArch ghc, "-linux-ghc-", ghcVersion ghc]
                 ]
             , map ("/app/share/" <>) -- share
-                [ T.concat ["doc/ghc-", ghcVersion generatorInput]
-                , T.concat ["doc/", architecture generatorInput, "-linux-ghc-", ghcVersion generatorInput]
+                [ T.concat ["doc/ghc-", ghcVersion ghc]
+                , T.concat ["doc/", ghcArch ghc, "-linux-ghc-", ghcVersion ghc]
                 , "man"
-                , T.concat [architecture generatorInput, "-linux-ghc-", ghcVersion generatorInput]
+                , T.concat [ghcArch ghc, "-linux-ghc-", ghcVersion ghc]
                 ]
             ]
         flatpakBase = baseFlatpak $ projectInformation generatorInput
@@ -122,11 +130,11 @@ generate generatorInput = Right $ cs $ encodePretty' (defConfig { confCompare = 
             , _finishArgs = _finishArgs flatpakBase
             , _cleanup = (_cleanup :: Flatpak -> [Text]) flatpakBase
             , _cleanupCommands = concat
-                [ ghcCleanupCommands
+                [ nub $ concat $ (map ghcCleanupCommands) (ghcs generatorInput)
                 , (_cleanupCommands :: Flatpak -> [Text]) flatpakBase
                 ]
             , _modules = concat
-                [ [(generateGhcModule (ghcUrl generatorInput) (architecture generatorInput) (ghcVersion generatorInput) (ghcHash generatorInput))]
+                [ (map generateGhcModule (ghcs generatorInput))
                 , (map (generateModule (packageHashes generatorInput) (revisionHashes generatorInput) (revisionCommit generatorInput)) ((packages :: GeneratorInput -> [Package]) generatorInput))
                 , _modules flatpakBase
                 ]
