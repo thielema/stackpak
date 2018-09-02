@@ -25,5 +25,5 @@ The dependencies will automatically be added by stackpak to the generated manife
 $ stackpak --output=my-new-manifest.json /path/to/base/manifest.json /path/to/stack/project/dir
 ````
 
-For an example base manifest file check out the base manifest of: <a href="https://gitlab.com/rszibele/e-juice-calc/blob/master/com.szibele.EJuiceCalc.base.json">E-Juice-Calc</a>
+For an example base manifest file check out the base manifest of: <a href="https://gitlab.com/rszibele/e-juice-calc/blob/master/packaging/flatpak/com.szibele.e-juice-calc.base.json">E-Juice-Calc</a>
 For a more advanced options regarding the cli of stakpak run `stackpak --help`.
