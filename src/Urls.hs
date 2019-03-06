@@ -47,6 +47,10 @@ urlGhcArchive arch vers = do
         then Right ()
         else Left $ T.concat ["Unsupported architecture: \"", arch, "\""] 
     case vers of
+        "8.6.4"  -> Right $ mk "deb8" arch vers
+        "8.6.3"  -> Right $ mk "deb8" arch vers
+        "8.6.2"  -> Right $ mk "deb8" arch vers
+        "8.4.4"  -> Right $ mk "deb8" arch vers
         "8.4.3"  -> Right $ mk "deb8" arch vers
         "8.4.2"  -> Right $ mk "deb8" arch vers
         "8.4.1"  -> Right $ mk "deb8" arch vers

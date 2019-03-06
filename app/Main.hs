@@ -37,7 +37,7 @@ name :: Text
 name = "stackpak"
 
 version :: Text
-version = "1.0.2"
+version = "1.0.3"
 
 copyright :: Text
 copyright = "(C) Richard Szibele"
@@ -90,6 +90,7 @@ setup baseFlatpakFilePath stackDirectory stackYaml packageYaml = do
 resolveBuildOrder :: ProjectInformation -> ExceptT Text IO [Package]
 resolveBuildOrder projInfo = do
     _ <- liftIO $ T.putStrLn "Resolving build order..."
+    liftIO $ print pkgsInBuildOrder
     ExceptT $ pure $ Right pkgsInBuildOrder
     where
         pkgs = resolvePackages (ltsYaml projInfo) (stackLsDeps projInfo)
