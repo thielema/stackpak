@@ -11,6 +11,7 @@ import Control.Monad.Trans.Except
 import GHC.Generics
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HMS
+import Data.List (partition)
 import Data.String.Conversions
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -89,8 +90,7 @@ setup baseFlatpakFilePath stackDirectory stackYaml packageYaml = do
 -- |Resolve build order with a given information about the project.
 resolveBuildOrder :: ProjectInformation -> ExceptT Text IO [Package]
 resolveBuildOrder projInfo = do
-    _ <- liftIO $ T.putStrLn "Resolving build order..."
-    liftIO $ print pkgsInBuildOrder
+    void $ liftIO $ T.putStrLn "Resolving build order..."
     ExceptT $ pure $ Right pkgsInBuildOrder
     where
         pkgs = resolvePackages (ltsYaml projInfo) (stackLsDeps projInfo)
@@ -101,10 +101,22 @@ resolveHashes :: Text -> [Package] -> ExceptT Text IO (HMS.HashMap Text Text)
 resolveHashes stackRoot pkgs = do
     liftIO $ T.putStrLn "Resolving package hashes..."
     hashes <- mapM (\pkg -> do
-        hash <- hashFile $ filePath pkg
-        pure $ (pkgName pkg, hash)
+        hash <- tryHashFile $ filePath pkg
+        pure $ case hash of
+             Left msg -> (T.concat [pkgName pkg, "-", pkgVersion pkg], "") -- we want version info for printing if failed
+             Right h  -> (pkgName pkg, h)
         ) pkgs
-    pure $ HMS.fromList hashes
+    let (resolved, unresolved) = Data.List.partition (\(n, h) -> h /= "") hashes
+    -- warn user
+    -- It's _not_ a critical error if the package is missing, it could be part of the
+    -- base GHC packages that are already available and stack just uses that.
+    -- If stack uses a different version then it will be available.
+    liftIO $ if length unresolved > 0
+        then do
+            let unresolvedMsg = T.intercalate ", " $ map fst unresolved
+            T.putStrLn $ T.concat ["Warning: The following packages are _not_ in the stack packages directory and will be ignored in the resulting build manifest: ", unresolvedMsg]
+        else pure ()
+    pure $ HMS.fromList resolved
     where
         pkgName pkg = (Stack.LtsYaml.name :: Package -> Text) pkg
         pkgVersion pkg = (Stack.LtsYaml.version :: Package -> Text) pkg

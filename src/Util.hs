@@ -86,6 +86,14 @@ saveFile filePath fileContents = do
 hashFile :: Text -> ExceptT Text IO Text
 hashFile filePath = loadFile filePath >>= pure . T.pack . show . hashWith SHA256
 
+-- |Try and hash a file without failing.
+tryHashFile :: Text -> ExceptT Text IO (Either Text Text)
+tryHashFile filepath = do
+    result <- liftIO $ runExceptT $ hashFile filepath
+    liftExceptT $ case result of
+         Left msg   -> Right $ (Left msg)
+         Right hash -> Right $ (Right hash)
+
 -- |Hash bytestring in memory.
 hashData :: B.ByteString -> ExceptT Text IO Text
 hashData contents = ExceptT $ pure $ Right $ T.pack $ show $ hashWith SHA256 contents
