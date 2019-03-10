@@ -237,9 +237,10 @@ execute arguments = do
 
     -- resolve the hashes of the packages.
     pkgHashes <- resolveHashes (stackRoot projInfo) pkgs
+    let pkgsWithHashes = filter (\x -> (Stack.LtsYaml.name :: Package -> Text) x `elem` (HMS.keys pkgHashes)) pkgs
 
     -- resolve the hashes of the .cabal revisions.
-    revisionHashes <- resolveCabalRevisionHashes commit pkgs
+    revisionHashes <- resolveCabalRevisionHashes commit pkgsWithHashes
 
     -- generate the manifest given the project information and the packages in the correct build order.
     manifest <- generateManifest $ GeneratorInput
@@ -247,7 +248,7 @@ execute arguments = do
         , packageHashes = pkgHashes
         , revisionHashes = revisionHashes
         , revisionCommit = commit
-        , packages = pkgs
+        , packages = pkgsWithHashes
         , ghcs = allGhcs
         }
 
