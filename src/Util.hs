@@ -54,12 +54,16 @@ loadFile filePath = do
 loadTextFile :: Text -> ExceptT Text IO Text
 loadTextFile filePath = loadFile filePath >>= return . cs
 
+-- |Decodes Yaml text.
+decodeYaml :: FromJSON a => Text -> ExceptT Text IO a
+decodeYaml rawYaml = liftExceptT $ textEither $ Yaml.decodeEither (cs rawYaml)
+
 -- |Load a Yaml file and decode its contents.
 loadYaml :: FromJSON a => Text -> ExceptT Text IO a
 loadYaml filePath = do
     liftIO $ T.putStrLn $ T.concat ["Loading json: ", filePath, "..."]
     loadResult <- loadTextFile filePath
-    liftExceptT $ textEither $ Yaml.decodeEither (cs loadResult)
+    decodeYaml (cs loadResult)
 
 -- |Load a Json File and decode its contents.
 loadJson :: FromJSON a => Text -> ExceptT Text IO a

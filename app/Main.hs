@@ -75,7 +75,8 @@ setup baseFlatpakFilePath stackDirectory stackYaml packageYaml = do
     stackLsDeps' <- stackLsDependencies stackDirectory
     stackYaml'   <- loadYaml stackYaml
     packageYaml' <- loadYaml packageYaml
-    ltsYaml'     <- loadYaml $ pathStackLtsYaml stackRoot' (resolver stackYaml')
+    rawLtsYaml   <- httpsGet $ urlLtsYaml (resolver stackYaml')
+    ltsYaml'     <- decodeYaml $ cs rawLtsYaml
     baseFlatpak' <- loadJson baseFlatpakFilePath
 
     ExceptT $ pure $ Right $ ProjectInformation

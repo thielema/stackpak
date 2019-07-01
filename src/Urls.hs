@@ -6,6 +6,14 @@ import qualified Data.Text as T
 
 import GhcData
 
+-- |Generate a URL for the lts yaml build plan.
+urlLtsYaml :: Text -> Text
+urlLtsYaml resolver = T.concat
+    [ "https://raw.githubusercontent.com/commercialhaskell/lts-haskell/master/"
+    , resolver
+    , ".yaml"
+    ]
+
 -- |Generate a URL for the cabal metadata.
 urlCabalMetadata :: Text -> Text -> Text -> Text
 urlCabalMetadata commit pkgName pkgVersion = T.concat
