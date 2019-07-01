@@ -25,6 +25,35 @@ ghcArch ghc = (architecture :: GhcData -> Text) ghc
 ghcUrl ghc = (url :: GhcData -> Text) ghc
 ghcHash ghc = (hash :: GhcData -> Text) ghc
 
+-- |GHC workarounds for the i386 architecture.
+ghcWorkarounds_i386 :: [Text]
+ghcWorkarounds_i386 = [ "mkdir -p /app/lib"
+                      , "ln -s /usr/lib/i386-linux-gnu/libtinfo.so /app/lib/libtinfo.so.5"
+                      ]
+
+-- |GHC workarounds for the x86_64 architecture.
+ghcWorkarounds_x86_64 :: [Text]
+ghcWorkarounds_x86_64 = [ "mkdir -p /app/lib"
+                        , "ln -s /usr/lib/x86_64-linux-gnu/libtinfo.so /app/lib/libtinfo.so.5"
+                        ]
+
+-- |GHC workarounds for the armv7 architecture.
+ghcWorkarounds_armv7 :: [Text]
+ghcWorkarounds_armv7 = [ "mkdir -p /app/lib"
+                       , "ln -s /lib/arm-linux-gnueabihf/libtinfo.so /app/lib/libtinfo.so.5"
+                       ]
+
+-- |GHC workarounds for the aarch64 architecture.
+ghcWorkarounds_aarch64 :: [Text]
+ghcWorkarounds_aarch64 = [ ] -- TODO: FIXME.
+
+-- |Workarounds to get binary GHC working in latest Flatpak runtimes.
+ghcWorkarounds :: Text -> [Text]
+ghcWorkarounds "i386"    = ghcWorkarounds_i386
+ghcWorkarounds "x86_64"  = ghcWorkarounds_x86_64
+ghcWorkarounds "armv7"   = ghcWorkarounds_armv7
+ghcWorkarounds "aarch64" = ghcWorkarounds_aarch64
+
 -- |Generate the module to download, compile and install GHC.
 generateGhcModule :: GhcData -> FlatpakModule
 generateGhcModule ghc = FlatpakModule
@@ -32,7 +61,7 @@ generateGhcModule ghc = FlatpakModule
     , _onlyArches = [ghcArchitectureTranslated (ghcArch ghc)]
     , _buildsystem = "simple"
     , _builddir = False
-    , _buildCommands = 
+    , _buildCommands = (ghcWorkarounds $ ghcArch ghc) ++ 
         [ "./configure --prefix=/app"
         , "make install"
         ]

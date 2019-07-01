@@ -1,0 +1,52 @@
+{
+	"app-id": "com.szibele.stackpak",
+	"runtime": "org.freedesktop.Platform",
+	"runtime-version": "18.08",
+	"sdk": "org.freedesktop.Sdk",
+	"command": "stackpak",
+	"finish-args": [],
+	"cleanup": [],
+	"cleanup-commands": [],
+	"modules": [
+		{
+			"name": "git",
+			"only-arches": [],
+			"buildsystem": "simple",
+			"builddir": true,
+			"build-commands": [
+				"make prefix=/app",
+				"make prefix=/app install"
+			],
+			"cleanup": [],
+			"cleanup-commands": [],
+			"sources": [
+				{
+					"type": "archive",
+					"url": "https://github.com/git/git/archive/v2.22.0.zip",
+					"sha256": "09f9a7f9875cfb5c9a31b6f79909f9e61069af4ccb4df432c230f7b90c070a05"
+				}
+		  	]
+		},
+		{
+			"name": "stackpak",
+			"only-arches": [],
+			"buildsystem": "simple",
+			"builddir": true,
+			"build-commands": [
+				"ghc -threaded --make Setup",
+				"./Setup configure --prefix=/app",
+				"./Setup build",
+				"./Setup install"
+			],
+			"cleanup": [],
+			"cleanup-commands": [],
+			"sources": [
+				{
+					"type": "archive",
+					"url": "https://gitlab.com/rszibele/stackpak/-/archive/1.0.4/stackpak-1.0.4.tar.bz2",
+					"sha256": "139273cd006c4e363e3231903d5e27ad66bfd04ef9a27b75b9d58f5cdca8e3ea"
+				}
+			]
+		}
+	]
+}
