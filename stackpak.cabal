@@ -1,0 +1,140 @@
+-- This file has been generated from package.yaml by hpack version 0.28.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: f2661602a060ee41674e6e63a3d73b06f778c191b7cca836926f70ee53c58fc8
+
+name:           stackpak
+version:        1.0.4
+description:    Please see the README on Gitlab at <https://gitlab.com/rszibele/stackpak#readme>
+homepage:       https://github.com/githubuser/stackpak#readme
+bug-reports:    https://github.com/githubuser/stackpak/issues
+author:         Richard Szibele
+maintainer:     richard@szibele.com
+copyright:      2018 Richard Szibele
+license:        GPLv2
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+extra-source-files:
+    ChangeLog.md
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/stackpak
+
+library
+  exposed-modules:
+      DependencyResolver
+      Flatpak.Flatpak
+      Generator
+      GeneratorInput
+      GhcData
+      Paths
+      ProjectInformation
+      Stack.LtsYaml
+      Stack.PackageYaml
+      Stack.Stack
+      Stack.StackLsDependency
+      Stack.StackYaml
+      Urls
+      Util
+  other-modules:
+      Paths_stackpak
+  hs-source-dirs:
+      src
+  build-depends:
+      MissingH
+    , aeson
+    , aeson-pretty
+    , base >=4.7 && <5
+    , bytestring
+    , cmdargs
+    , containers
+    , cryptonite
+    , directory
+    , extra
+    , hashable
+    , http-client
+    , http-client-tls
+    , http-conduit
+    , http-types
+    , parsec
+    , process
+    , split
+    , string-conversions
+    , text
+    , transformers
+    , unordered-containers
+    , yaml
+  default-language: Haskell2010
+
+executable stackpak
+  main-is: Main.hs
+  other-modules:
+      Paths_stackpak
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      MissingH
+    , aeson
+    , aeson-pretty
+    , base >=4.7 && <5
+    , bytestring
+    , cmdargs
+    , containers
+    , cryptonite
+    , directory
+    , extra
+    , hashable
+    , http-client
+    , http-client-tls
+    , http-conduit
+    , http-types
+    , parsec
+    , process
+    , split
+    , stackpak
+    , string-conversions
+    , text
+    , transformers
+    , unordered-containers
+    , yaml
+  default-language: Haskell2010
+
+test-suite stackpak-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_stackpak
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      MissingH
+    , aeson
+    , aeson-pretty
+    , base >=4.7 && <5
+    , bytestring
+    , cmdargs
+    , containers
+    , cryptonite
+    , directory
+    , extra
+    , hashable
+    , http-client
+    , http-client-tls
+    , http-conduit
+    , http-types
+    , parsec
+    , process
+    , split
+    , stackpak
+    , string-conversions
+    , text
+    , transformers
+    , unordered-containers
+    , yaml
+  default-language: Haskell2010

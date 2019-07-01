@@ -1,7 +1,6 @@
 .stack-work/
 .flatpak-builder
 build-dir/
-stackpak.cabal
 *~
 packaging/Flatpak/com.szibele.stakpak.json
 
