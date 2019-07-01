@@ -156,7 +156,7 @@ execProcess process = do
                      RawCommand   exe args -> exe : args
     let p = case insideFlatpak of
                 Nothing -> process
-                Just _  -> process { cmdspec = ShellCommand $ "flatpak-spawn" ++ intercalate " " (["--host", "--"] ++ fpArgs) }
+                Just _  -> process { cmdspec = ShellCommand $ "flatpak-spawn " ++ intercalate " " (["--host", "--"] ++ fpArgs) }
     -- create it
     (_, mHandleOut, mHandleErr, processHandle) <- liftIO $ createProcess p
     exitCode <- liftIO $ waitForProcess processHandle
