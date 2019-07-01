@@ -9,6 +9,7 @@ import Crypto.Hash
 import Data.Aeson
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as L8
+import Data.List
 import Data.String.Conversions
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -19,6 +20,7 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types.Status (statusCode)
 import System.Directory
+import System.Environment
 import System.Exit
 import System.Process
 
@@ -147,7 +149,16 @@ mkShellProcess workingDir command =
 -- |Execute the process and return the output as text.
 execProcess :: CreateProcess -> ExceptT Text IO Text
 execProcess process = do
-    (_, mHandleOut, mHandleErr, processHandle) <- liftIO $ createProcess process
+    -- check if we are running as a Flatpak
+    insideFlatpak <- liftIO $ lookupEnv "FLATPAK_ID"
+    let fpArgs = case (cmdspec process) of
+                     ShellCommand str      -> [str]
+                     RawCommand   exe args -> exe : args
+    let p = case insideFlatpak of
+                Nothing -> process
+                Just _  -> process { cmdspec = RawCommand "flatpak-spawn" (["--host", "--"] ++ fpArgs) }
+    -- create it
+    (_, mHandleOut, mHandleErr, processHandle) <- liftIO $ createProcess p
     exitCode <- liftIO $ waitForProcess processHandle
     output <- liftIO $ case mHandleOut of
         Nothing     -> pure Nothing
@@ -161,7 +172,7 @@ execProcess process = do
             pure $ Just c
     ExceptT $ pure $ case exitCode == ExitSuccess of
         False -> Left $ T.pack $ 
-            ("Failed to execute `" <> (show $ cmdspec process) <> "` in: " <> (show $ cwd process))
+            ("Failed to execute `" <> (show $ cmdspec p) <> "` in: " <> (show $ cwd p))
             ++ (case error of
                     Nothing -> ""
                     Just e  -> e)

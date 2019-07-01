@@ -41,7 +41,7 @@ version :: Text
 version = "1.0.4"
 
 copyright :: Text
-copyright = "(C) Richard Szibele"
+copyright = "Copyright (C) 2019 Richard Szibele"
 
 defaultInput :: FilePath
 defaultInput = "stackpak.json"
