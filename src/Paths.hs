@@ -5,6 +5,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import System.Directory
 
+-- TODO: use strongly typed file paths
 
 -- |Determines the configuration directory for Stackpak.
 pathConfig :: IO Text

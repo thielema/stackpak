@@ -7,6 +7,8 @@ import GHC.Generics
 import Data.Text (Text)
 import qualified Data.Text as T
 
+-- TODO: create and use a sum type for the architectures
+
 -- |The available GHC architectures.
 ghcArchitectures :: [Text]
 ghcArchitectures = map T.pack ["i386", "x86_64", "armv7", "aarch64"]
