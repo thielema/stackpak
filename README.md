@@ -25,7 +25,7 @@ Finally, add an alias for stackpack to your .bashrc for convenience:
 $ echo "alias stackpak='flatpak run com.szibele.stackpak'" >> ~/.bashrc
 ```
 
-**NB:** Stackpak calls `git` and `stack`, so make sure you have them installed and in your PATH environment variable.
+**NB:** Stackpak calls `git` and `stack`, so make sure you have them installed and in your PATH.
 
 ## Installing from Source
 
