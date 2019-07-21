@@ -9,6 +9,7 @@ import Crypto.Hash
 import Data.Aeson
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as L8
+import Data.Foldable
 import Data.List
 import Data.String.Conversions
 import Data.Text (Text)
@@ -83,11 +84,7 @@ hashFile filePath = loadFile filePath >>= pure . T.pack . show . hashWith SHA256
 
 -- |Try and hash a file without failing.
 tryHashFile :: Text -> ExceptT Text IO (Either Text Text)
-tryHashFile filepath = do
-    result <- liftIO $ runExceptT $ hashFile filepath
-    liftExceptT $ case result of
-         Left msg   -> Right $ (Left msg)
-         Right hash -> Right $ (Right hash)
+tryHashFile filepath = liftIO $ runExceptT $ hashFile filepath
 
 -- |Hash bytestring in memory.
 hashData :: B.ByteString -> ExceptT Text IO Text
@@ -125,15 +122,11 @@ mkProcess workingDir procName cmds = (proc (T.unpack procName) (map T.unpack cmd
 mkShellProcess :: Maybe Text -> Text -> CreateProcess
 mkShellProcess workingDir command =
     (shell $ T.unpack command)
-    { cwd = shellCwd
+    { cwd = T.unpack <$> workingDir
     , std_in = NoStream
     , std_out = CreatePipe
     , std_err = CreatePipe
     }
-    where
-        shellCwd = case workingDir of
-            Just wd -> Just $ T.unpack wd
-            _       -> Nothing
 
 -- |Execute the process and return the output as text.
 execProcess :: CreateProcess -> ExceptT Text IO Text
@@ -149,23 +142,10 @@ execProcess process = do
     -- create it
     (_, mHandleOut, mHandleErr, processHandle) <- liftIO $ createProcess p
     exitCode <- liftIO $ waitForProcess processHandle
-    output <- liftIO $ case mHandleOut of
-        Nothing     -> pure Nothing
-        Just handle -> do
-            c <- hGetContents handle
-            pure $ Just c
-    error <- liftIO $ case mHandleErr of
-        Nothing     -> pure Nothing
-        Just handle -> do
-            c <- hGetContents handle
-            pure $ Just c
+    output <- liftIO $ traverse hGetContents mHandleOut
+    error <- liftIO $ traverse hGetContents mHandleErr
     ExceptT $ pure $ case exitCode == ExitSuccess of
-        False -> Left $ T.pack $ 
+        False -> Left $ T.pack $
             ("Failed to execute `" <> (show $ cmdspec p) <> "` in: " <> (show $ cwd p))
-            ++ (case error of
-                    Nothing -> ""
-                    Just e  -> e)
-        True  -> Right $ T.pack $
-            case output of
-                Nothing -> ""
-                Just o  -> o
+            ++ fold error
+        True  -> Right $ foldMap T.pack output
