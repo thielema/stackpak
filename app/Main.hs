@@ -112,11 +112,9 @@ resolveHashes stackRoot pkgs = do
     -- It's _not_ a critical error if the package is missing, it could be part of the
     -- base GHC packages that are already available and stack just uses that.
     -- If stack uses a different version then it will be available.
-    liftIO $ if length unresolved > 0
-        then do
+    liftIO $ when (length unresolved > 0) $ do
             let unresolvedMsg = T.intercalate ", " $ map fst unresolved
             T.putStrLn $ T.concat ["Warning: The following packages are _not_ in the stack packages directory and will be ignored in the resulting build manifest: ", unresolvedMsg]
-        else pure ()
     pure $ HMS.fromList resolved
     where
         pkgName pkg = (Stack.LtsYaml.name :: Package -> Text) pkg
