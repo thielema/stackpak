@@ -102,7 +102,7 @@ tryHashFile filepath = do
 
 -- |Hash bytestring in memory.
 hashData :: B.ByteString -> ExceptT Text IO Text
-hashData contents = ExceptT $ pure $ Right $ T.pack $ show $ hashWith SHA256 contents
+hashData contents = return $ T.pack $ show $ hashWith SHA256 contents
 
 -- |Get the contents of a HTTPS request.
 httpsGet :: Text -> ExceptT Text IO L8.ByteString
@@ -114,8 +114,8 @@ httpsGet url = do
         resp <- httpLbs request manager
         pure resp
     case statusCode $ responseStatus response of
-        200  -> ExceptT $ pure $ Right (responseBody response)
-        code -> ExceptT $ pure $ Left $ T.concat ["HTTPS get failed with status code: ", T.pack $ show code]
+        200  -> return $ responseBody response
+        code -> throwE $ T.concat ["HTTPS get failed with status code: ", T.pack $ show code]
 
 -- |Download the contents of a url and save it to a file.
 downloadToFile :: Text -> Text -> ExceptT Text IO ()

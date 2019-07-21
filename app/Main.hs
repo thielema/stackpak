@@ -79,7 +79,7 @@ setup baseFlatpakFilePath stackDirectory stackYaml packageYaml = do
     ltsYaml'     <- decodeYaml $ cs rawLtsYaml
     baseFlatpak' <- loadJson baseFlatpakFilePath
 
-    ExceptT $ pure $ Right $ ProjectInformation
+    return $ ProjectInformation
         { stackRoot = stackRoot'
         , stackLsDeps = stackLsDeps'
         , stackYaml = stackYaml'
@@ -91,8 +91,8 @@ setup baseFlatpakFilePath stackDirectory stackYaml packageYaml = do
 -- |Resolve build order with a given information about the project.
 resolveBuildOrder :: ProjectInformation -> ExceptT Text IO [Package]
 resolveBuildOrder projInfo = do
-    void $ liftIO $ T.putStrLn "Resolving build order..."
-    ExceptT $ pure $ Right pkgsInBuildOrder
+    liftIO $ T.putStrLn "Resolving build order..."
+    return pkgsInBuildOrder
     where
         pkgs = resolvePackages (ltsYaml projInfo) (stackLsDeps projInfo)
         pkgsInBuildOrder = resolve pkgs
@@ -174,9 +174,9 @@ resolveCabalRevisionHashes commit pkgs = do
                         h <- hashData (BL.toStrict content)
                         saveFile filePath (cs h)
                         pure h
-                ExceptT $ pure $ Right (pkgName p, hash)
+                return (pkgName p, hash)
             ) pkgs
-        ExceptT $ pure $ Right $ HMS.fromList resultTuples
+        return $ HMS.fromList resultTuples
     where
         pkgName pkg = (Stack.LtsYaml.name :: Package -> Text) pkg
         pkgVersion pkg = (Stack.LtsYaml.version :: Package -> Text) pkg
@@ -258,8 +258,6 @@ execute arguments = do
 
     -- 
     liftIO $ T.putStrLn "Done."
-
-    ExceptT $ pure $ Right () -- TODO: remove me
 
 -- |Main entry point.
 main = do
