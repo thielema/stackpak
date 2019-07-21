@@ -33,11 +33,6 @@ textEither (Right x) = Right x
 liftExceptT :: Either a b -> ExceptT a IO b
 liftExceptT x = ExceptT $ pure $ x
 
--- |Helper function to convert a maybe value to a list.
-maybeToList :: Maybe a -> [a]
-maybeToList (Just a) = [a]
-maybeToList _ = []
-
 -- |Helper function to convert a tuple of maybes to a list.
 maybeTupleToList :: (Maybe a, Maybe b) -> [(a, b)]
 maybeTupleToList (Nothing, _) = []

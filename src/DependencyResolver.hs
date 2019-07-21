@@ -5,6 +5,7 @@ import Data.Graph
 import Data.Hashable
 import qualified Data.HashMap.Strict as HMS
 import Data.List
+import Data.Maybe
 import Data.Text (Text)
 
 import Stack.LtsYaml
@@ -31,7 +32,7 @@ resolve pkgs = result
         rootEdges = zip (repeat graphRoot) (HMS.keys hmLookup)
 
         depsToVertices :: [Text] -> [Int]
-        depsToVertices deps = concatMap (\depName -> maybeToList (HMS.lookup depName hmLookupRev)) deps
+        depsToVertices deps = mapMaybe (\depName -> HMS.lookup depName hmLookupRev) deps
 
         pkgToEdges :: (Text, [Text]) -> [(Int, Int)]
         pkgToEdges (pkgName, deps) = case HMS.lookup pkgName hmLookupRev of
@@ -45,7 +46,7 @@ resolve pkgs = result
         vertices = topSort graph
 
         -- names of the packages in build order.
-        orderedPkgNames = concatMap (\k -> maybeToList $ HMS.lookup k hmLookup) vertices
+        orderedPkgNames = mapMaybe (\k -> HMS.lookup k hmLookup) vertices
 
         -- list of packages in build order.
         result = concatMap (\pkgName -> filter (\pkg -> (name :: Package -> Text) pkg == pkgName) pkgs) orderedPkgNames 
