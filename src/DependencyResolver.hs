@@ -1,6 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 module DependencyResolver where
 
+import Control.Applicative
 import Data.Graph
 import Data.Hashable
 import qualified Data.HashMap.Strict as HMS
@@ -25,7 +26,7 @@ resolve pkgs = result
         -- lookup table for vertex -> key
         hmLookup = HMS.fromList $ zip [1..] (HMS.keys hashMap) :: HMS.HashMap Int Text
         -- lookup table for key -> vertex
-        hmLookupRev = HMS.fromList $ concatMap (\k -> maybeTupleToList (HMS.lookup k hmLookup, Just k)) (HMS.keys hmLookup)
+        hmLookupRev = HMS.fromList $ mapMaybe (\k -> liftA2 (,) (HMS.lookup k hmLookup) (Just k)) (HMS.keys hmLookup)
         -- root of the graph is 0
         graphRoot = 0 :: Int
         -- root edges

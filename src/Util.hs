@@ -33,12 +33,6 @@ textEither (Right x) = Right x
 liftExceptT :: Either a b -> ExceptT a IO b
 liftExceptT x = ExceptT $ pure $ x
 
--- |Helper function to convert a tuple of maybes to a list.
-maybeTupleToList :: (Maybe a, Maybe b) -> [(a, b)]
-maybeTupleToList (Nothing, _) = []
-maybeTupleToList (_, Nothing) = []
-maybeTupleToList (Just k, Just v) = [(k, v)]
-
 -- |Load a file and return its contents.
 loadFile :: Text -> ExceptT Text IO B.ByteString
 loadFile filePath = do
